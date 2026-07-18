@@ -1,0 +1,38 @@
+# Virtual Environments
+venv
+.venv
+env
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Jupyter
+experiments
+
+# Logs
+logs
+*.log
+
+# Generated Data
+data
+
+# Trained Models
+models
+*.pkl
+
+# Reports
+reports
+
+# DVCLive
+dvclive
+
+# macOS
+.DS_Store
+
+# VS Code
+.vscode
+
+# Environment Variables
+.env
