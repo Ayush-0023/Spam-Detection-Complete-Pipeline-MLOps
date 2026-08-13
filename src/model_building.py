@@ -4,7 +4,7 @@ import logging
 import yaml
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import MultinomialNB
 
 # Ensure the "logs" directory exists
 log_dir = "logs"
@@ -97,39 +97,28 @@ def load_data(file_path: str) -> pd.DataFrame:
         )
         raise
 
-
-def train_model(            # Using type-hinting style
+def train_model(
     X_train: np.ndarray,
     y_train: np.ndarray,
     params: dict,
-) -> RandomForestClassifier:
+) -> MultinomialNB:
     """
-    Train the Random Forest model.
-
-    :param X_train: Training features.
-    :param y_train: Training labels.
-    :param params: Dictionary containing model hyperparameters.
-    :return: Trained RandomForestClassifier.
+    Train the Multinomial Naive Bayes model.
     """
 
     try:
-        # Ensure both X_train and y_train contain the same
-        # number of training samples.
         if X_train.shape[0] != y_train.shape[0]:
             raise ValueError(
                 "The number of samples in X_train and y_train must be the same."
             )
 
         logger.debug(
-            "Initializing Random Forest model with parameters: %s",
+            "Initializing MultinomialNB model with parameters: %s",
             params,
         )
 
-        # Initialize the Random Forest model using
-        # the hyperparameters defined in params.yaml.
-        clf = RandomForestClassifier(
-            n_estimators=params["n_estimators"],
-            random_state=params["random_state"],
+        clf = MultinomialNB(
+            alpha=params["alpha"]
         )
 
         logger.debug(
@@ -137,21 +126,27 @@ def train_model(            # Using type-hinting style
             X_train.shape[0],
         )
 
-        # Train the model
         clf.fit(X_train, y_train)
 
-        logger.debug("Model training completed successfully")
+        logger.debug(
+            "Model training completed successfully"
+        )
 
         return clf
 
     except ValueError as e:
-        logger.error("ValueError during model training: %s", e)
+        logger.error(
+            "ValueError during model training: %s",
+            e,
+        )
         raise
 
     except Exception as e:
-        logger.error("Error during model training: %s", e)
+        logger.error(
+            "Error during model training: %s",
+            e,
+        )
         raise
-
 
 def save_model(model, file_path: str) -> None:
     """

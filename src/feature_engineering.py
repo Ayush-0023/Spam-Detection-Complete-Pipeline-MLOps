@@ -95,36 +95,36 @@ def apply_tfidf(
     """
 
     try:
-        # Create a TF-IDF vectorizer.
-        # max_features limits the number of words/features.
         vectorizer = TfidfVectorizer(max_features=max_features)
 
-        # Separate features and target labels
         X_train = train_data["text"].values
         y_train = train_data["target"].values
 
         X_test = test_data["text"].values
         y_test = test_data["target"].values
 
-        # Learn the vocabulary from the training data
-        # and convert it into TF-IDF vectors.
+        # Fit ONLY on training data
         X_train_tfidf = vectorizer.fit_transform(X_train)
 
-        # Use the same learned vocabulary to transform the test data.
-        # We DO NOT call fit_transform() here because
-        # the model should not learn anything from the test dataset.
+        # Transform test data using the vocabulary learned from training data
         X_test_tfidf = vectorizer.transform(X_test)
 
-        # Convert sparse matrices into DataFrames
-        train_df = pd.DataFrame(X_train_tfidf.toarray())
+        train_df = pd.DataFrame(
+            X_train_tfidf.toarray()
+        )
         train_df["target"] = y_train
 
-        test_df = pd.DataFrame(X_test_tfidf.toarray())
+        test_df = pd.DataFrame(
+            X_test_tfidf.toarray()
+        )
         test_df["target"] = y_test
 
-        logger.debug("TF-IDF vectorization completed successfully")
+        logger.debug(
+            "TF-IDF vectorization completed successfully with %d features",
+            max_features,
+        )
 
-        return train_df, test_df
+        return train_df, test_df, vectorizer
 
     except Exception as e:
         logger.error("Error during TF-IDF transformation: %s", e)
@@ -156,35 +156,62 @@ def main():
     """
 
     try:
-        # Load parameters from params.yaml
         params = load_params("params.yaml")
 
-        # Read the maximum number of TF-IDF features
         max_features = params["feature_engineering"]["max_features"]
 
-        # Load the preprocessed train and test datasets
-        train_data = load_data("./data/interim/train_processed.csv")
-        test_data = load_data("./data/interim/test_processed.csv")
+        train_data = load_data(
+            "./data/interim/train_processed.csv"
+        )
 
-        # Apply TF-IDF feature engineering
-        train_df, test_df = apply_tfidf(
+        test_data = load_data(
+            "./data/interim/test_processed.csv"
+        )
+
+        train_df, test_df, vectorizer = apply_tfidf(
             train_data,
             test_data,
             max_features,
         )
 
-        # Save the transformed datasets
         save_data(
             train_df,
-            os.path.join("data", "processed", "train_tfidf.csv"),
+            os.path.join(
+                "data",
+                "processed",
+                "train_tfidf.csv",
+            ),
         )
 
         save_data(
             test_df,
-            os.path.join("data", "processed", "test_tfidf.csv"),
+            os.path.join(
+                "data",
+                "processed",
+                "test_tfidf.csv",
+            ),
         )
 
-        logger.debug("Feature engineering process completed successfully")
+        # Save the fitted vectorizer
+        vectorizer_path = os.path.join(
+            "models",
+            "vectorizer.pkl",
+        )
+
+        os.makedirs("models", exist_ok=True)
+
+        with open(vectorizer_path, "wb") as file:
+            import pickle
+            pickle.dump(vectorizer, file)
+
+        logger.debug(
+            "Vectorizer saved successfully to %s",
+            vectorizer_path,
+        )
+
+        logger.debug(
+            "Feature engineering process completed successfully"
+        )
 
     except Exception as e:
         logger.error(
@@ -192,7 +219,6 @@ def main():
             e,
         )
         print(f"Error: {e}")
-
 
 # Run the main() function only when this file is executed directly.
 # If this file is imported into another Python file,
