@@ -7,6 +7,7 @@ stages:
     - data_ingestion.test_size
     outs:
     - data/raw
+
   data_preprocessing:
     cmd: python src/data_preprocessing.py
     deps:
@@ -14,6 +15,7 @@ stages:
     - src/data_preprocessing.py
     outs:
     - data/interim
+
   feature_engineering:
     cmd: python src/feature_engineering.py
     deps:
@@ -23,19 +25,22 @@ stages:
     - feature_engineering.max_features
     outs:
     - data/processed
+    - models/vectorizer.pkl
+
   model_building:
     cmd: python src/model_building.py
     deps:
     - data/processed
     - src/model_building.py
     params:
-    - model_building.n_estimators
-    - model_building.random_state
+    - model_building.alpha
     outs:
     - models/model.pkl
+
   model_evaluation:
     cmd: python src/model_evaluation.py
     deps:
+    - data/processed
     - models/model.pkl
     - src/model_evaluation.py
     metrics:
